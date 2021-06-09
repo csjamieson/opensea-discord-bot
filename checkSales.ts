@@ -29,7 +29,7 @@ const buildSaleMessage = (sale: any) => (
 	.setThumbnail(sale.asset.collection.image_url)
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
-		{ name: 'Amount', value: '0.1'},
+		{ name: 'Amount', value: `${ethers.utils.formatEther(sale.bid_amount)}${ethers.constants.EtherSymbol}`},
 		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
 		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
 	)
