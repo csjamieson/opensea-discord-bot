@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config()
 import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 import { ethers } from "ethers";
@@ -28,7 +29,7 @@ const buildSaleMessage = (sale: any) => (
 	.setThumbnail(sale.asset.collection.image_url)
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
-		{ name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price)}${ethers.constants.EtherSymbol}`},
+		{ name: 'Amount', value: '0.1'},
 		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
 		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
 	)
@@ -36,7 +37,7 @@ const buildSaleMessage = (sale: any) => (
 	.setTimestamp(sale.created_date) // unclear why this seems broken
 	.setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
 )
-
+/*
 const buildListedMessage = (sale: any) => (
   new Discord.MessageEmbed()
 	.setColor('#0099ff')
@@ -46,7 +47,7 @@ const buildListedMessage = (sale: any) => (
 	.setThumbnail(sale?.asset?.collection?.image_url)
 	.addFields(
 		{ name: 'Name', value: sale?.asset?.name },
-		{ name: 'Amount', value: `${ethers.utils.formatEther(sale?.starting_price)}${ethers.constants.EtherSymbol}`},
+		{ name: 'Amount', value: '0.1'},
 		{ name: 'Seller', value: sale?.seller?.address,  },
 	)
   .setImage(sale?.asset?.image_url)
@@ -63,31 +64,26 @@ const buildBidMessage = (sale: any) => (
 	.setThumbnail(sale.asset.collection.image_url)
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
-		{ name: 'Amount', value: `${ethers.utils.formatEther(sale.bid_amount)}${ethers.constants.EtherSymbol}`},
+		//{ name: 'Amount', value: `${ethers.utils.formatEther(sale.bid_amount)}${ethers.constants.EtherSymbol}`},
 		{ name: 'Bidder', value: sale?.from_account?.address, },
 		{ name: 'Seller', value: sale?.owner?.address,  },
 	)
   .setImage(sale.asset.image_url)
 	.setTimestamp(sale.created_date) // unclear why this seems broken
 	.setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-)
+)*/
 
 async function main() {
   const channel = await discordSetup();
-  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
-  const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
+  //const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 6000;
+  //const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   
 
   // SALES
   const salesResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
-      offset: '0',
-      limit: '100',
       event_type: 'successful',
-      only_opensea: 'true',
-      occurred_after: hoursAgo.toString(), 
-      collection_slug: process.env.COLLECTION_SLUG!,
-      contract_address: process.env.CONTRACT_ADDRESS!
+      collection_slug: 'bad-cache',
   })).then((resp) => resp.json());
 
   await Promise.all(
@@ -97,17 +93,17 @@ async function main() {
     })
   );   
 
-
+/*
   // LISTINGS
   const listingsResponse = await fetch(
     "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
       offset: '0',
-      limit: '100',
+      limit: '50',
       event_type: 'created',
       only_opensea: 'true',
-      occurred_after: hoursAgo.toString(), 
+      //occurred_after: hoursAgo.toString(), 
       collection_slug: process.env.COLLECTION_SLUG!,
-      contract_address: process.env.CONTRACT_ADDRESS!
+      //contract_address: process.env.CONTRACT_ADDRESS!
   })).then((resp) => resp.json());
 
   await Promise.all(
@@ -121,12 +117,12 @@ async function main() {
     const bidsResponse = await fetch(
       "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
         offset: '0',
-        limit: '100',
+        limit: '50',
         event_type: 'bid_entered',
         only_opensea: 'true',
-        occurred_after: hoursAgo.toString(), 
+        //occurred_after: hoursAgo.toString(), 
         collection_slug: process.env.COLLECTION_SLUG!,
-        contract_address: process.env.CONTRACT_ADDRESS!
+        //contract_address: process.env.CONTRACT_ADDRESS!
     })).then((resp) => resp.json());
   
     await Promise.all(
@@ -134,9 +130,9 @@ async function main() {
         const message = buildBidMessage(sale);
         return channel.send(message)
       })
-    );   
+    ); 
+    */  
 }
-
 main()
   .then(() => process.exit(0))
   .catch(error => {
