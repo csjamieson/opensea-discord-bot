@@ -23,13 +23,13 @@ const  discordSetup = async (): Promise<TextChannel> => {
 const buildSaleMessage = (sale: any) => (
   new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.setTitle(sale.asset.name + ' sold!')
+	.setTitle('Bad Cache '+sale.asset.name)
 	.setURL(sale.asset.permalink)
-	.setAuthor('OpenSea Bot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-	.setThumbnail(sale.asset.collection.image_url)
+	.setAuthor('Bot Cache', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
+	//.setThumbnail(sale.asset.collection.image_url)
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
-		{ name: 'Amount', value: `${ethers.utils.formatEther(sale.bid_amount)}${ethers.constants.EtherSymbol}`},
+		{ name: 'Amount', value: '0.1 Eth'},
 		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
 		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
 	)
@@ -84,6 +84,7 @@ async function main() {
     "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
       event_type: 'successful',
       collection_slug: 'bad-cache',
+      occurred_after: '1000',
   })).then((resp) => resp.json());
 
   await Promise.all(
