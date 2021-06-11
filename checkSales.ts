@@ -30,6 +30,7 @@ const buildSaleMessage = (sale: any) => (
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
 		{ name: 'Amount', value: '0.1 Eth'},
+		{ name: 'Limit', value: '1'},
 		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
 		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
 	)
