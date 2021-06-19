@@ -30,7 +30,6 @@ const buildSaleMessage = (sale: any) => (
 	.addFields(
 		{ name: 'Name', value: sale.asset.name },
 		{ name: 'Amount', value: '0.1 Eth'},
-		{ name: 'Limit', value: '1'},
 		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
 		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
 	)
@@ -85,7 +84,7 @@ async function main() {
     "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
       event_type: 'successful',
       collection_slug: 'bad-cache',
-      occurred_after: '1000',
+      occurred_after: '100',
   })).then((resp) => resp.json());
 
   await Promise.all(
