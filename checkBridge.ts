@@ -39,7 +39,7 @@ async function main() {
     limit: '1',
     event_type: 'transfer',
     only_opensea: 'false',
-    account_address: '0xbcb7d6dc7049751ac77878366bf02550930cb464'
+    account_address: '0xbcb7d6dc7049751ac77878366bf02550930cb464',
     occurred_after: hoursAgo.toString(), 
   })
 
