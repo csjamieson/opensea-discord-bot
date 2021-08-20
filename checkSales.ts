@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config()
+import 'dotenv/config';
 import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 import { ethers } from "ethers";
 
+const OPENSEA_SHARED_STOREFRONT_ADDRESS = '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 
 const discordBot = new Discord.Client();
 const  discordSetup = async (): Promise<TextChannel> => {
@@ -20,122 +20,54 @@ const  discordSetup = async (): Promise<TextChannel> => {
   })
 }
 
-const buildSaleMessage = (sale: any) => (
+const buildMessage = (sale: any) => (
   new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.setTitle('Bad Cache '+sale.asset.name)
+	.setTitle(sale.asset.name)
 	.setURL(sale.asset.permalink)
-	.setAuthor('Bot Cache', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-	//.setThumbnail(sale.asset.collection.image_url)
 	.addFields(
-		{ name: 'Name', value: sale.asset.name },
-		{ name: 'Amount', value: '0.1 Eth'},
-		{ name: 'Buyer', value: sale?.transaction?.to_account?.address, },
-		{ name: 'Seller', value: sale?.transaction?.from_account?.address,  },
-	)
-  .setImage(sale.asset.image_url)
-	.setTimestamp(sale.created_date) // unclear why this seems broken
-	.setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-)
-/*
-const buildListedMessage = (sale: any) => (
-  new Discord.MessageEmbed()
-	.setColor('#0099ff')
-	.setTitle(sale?.asset?.name + ' listed for sale')
-	.setURL(sale?.asset?.permalink)
-	.setAuthor('OpenSea Bot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-	.setThumbnail(sale?.asset?.collection?.image_url)
-	.addFields(
-		{ name: 'Name', value: sale?.asset?.name },
-		{ name: 'Amount', value: '0.1'},
+		{ name: 'Amount', value: `${ethers.utils.formatEther(sale.total_price || '0')}${ethers.constants.EtherSymbol}`},
+		{ name: 'Buyer', value: sale?.winner_account?.address, },
 		{ name: 'Seller', value: sale?.seller?.address,  },
 	)
-  .setImage(sale?.asset?.image_url)
-	.setTimestamp(sale?.created_date) // unclear why this seems broken
-	.setFooter('Listed on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-)
-
-const buildBidMessage = (sale: any) => (
-  new Discord.MessageEmbed()
-	.setColor('#0099ff')
-	.setTitle(sale.asset.name + ' received a bid')
-	.setURL(sale.asset.permalink)
-	.setAuthor('OpenSea Bot', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png', 'https://github.com/sbauch/opensea-discord-bot')
-	.setThumbnail(sale.asset.collection.image_url)
-	.addFields(
-		{ name: 'Name', value: sale.asset.name },
-		//{ name: 'Amount', value: `${ethers.utils.formatEther(sale.bid_amount)}${ethers.constants.EtherSymbol}`},
-		{ name: 'Bidder', value: sale?.from_account?.address, },
-		{ name: 'Seller', value: sale?.owner?.address,  },
-	)
   .setImage(sale.asset.image_url)
-	.setTimestamp(sale.created_date) // unclear why this seems broken
-	.setFooter('Sold on OpenSea', 'https://files.readme.io/566c72b-opensea-logomark-full-colored.png')
-)*/
+	.setTimestamp(Date.parse(`${sale?.created_date}Z`))
+)
 
 async function main() {
   const channel = await discordSetup();
-  //const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 6000;
-  //const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
+  const seconds = process.env.SECONDS ? parseInt(process.env.SECONDS) : 3_600;
+  const hoursAgo = (Math.round(new Date().getTime() / 1000) - (seconds)); // in the last hour, run hourly?
   
+  const params = new URLSearchParams({
+    offset: '0',
+    limit: '1',
+    event_type: 'successful',
+    only_opensea: 'false',
+    occurred_after: hoursAgo.toString(), 
+    collection_slug: process.env.COLLECTION_SLUG!,
+  })
 
-  // SALES
-  const salesResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
-      event_type: 'successful',
-      collection_slug: 'bad-cache',
-      occurred_after: '100',
-  })).then((resp) => resp.json());
+  if (process.env.CONTRACT_ADDRESS !== OPENSEA_SHARED_STOREFRONT_ADDRESS) {
+    params.append('asset_contract_address', process.env.CONTRACT_ADDRESS!)
+  }
 
-  await Promise.all(
-    salesResponse?.asset_events?.map(async (sale: any) => {
-      const message = buildSaleMessage(sale);
+  const openSeaResponse = await fetch(
+    "https://api.opensea.io/api/v1/events?" + params).then((resp) => resp.json());
+    
+  return await Promise.all(
+    openSeaResponse?.asset_events?.reverse().map(async (sale: any) => {
+      const message = buildMessage(sale);
       return channel.send(message)
     })
   );   
-
-/*
-  // LISTINGS
-  const listingsResponse = await fetch(
-    "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
-      offset: '0',
-      limit: '50',
-      event_type: 'created',
-      only_opensea: 'true',
-      //occurred_after: hoursAgo.toString(), 
-      collection_slug: process.env.COLLECTION_SLUG!,
-      //contract_address: process.env.CONTRACT_ADDRESS!
-  })).then((resp) => resp.json());
-
-  await Promise.all(
-    listingsResponse?.asset_events?.map(async (sale: any) => {
-      const message = buildListedMessage(sale);
-      return channel.send(message)
-    })
-  );   
-
-    // BIDS
-    const bidsResponse = await fetch(
-      "https://api.opensea.io/api/v1/events?" + new URLSearchParams({
-        offset: '0',
-        limit: '50',
-        event_type: 'bid_entered',
-        only_opensea: 'true',
-        //occurred_after: hoursAgo.toString(), 
-        collection_slug: process.env.COLLECTION_SLUG!,
-        //contract_address: process.env.CONTRACT_ADDRESS!
-    })).then((resp) => resp.json());
-  
-    await Promise.all(
-      bidsResponse?.asset_events?.map(async (sale: any) => {
-        const message = buildBidMessage(sale);
-        return channel.send(message)
-      })
-    ); 
-    */  
 }
+
 main()
-  .then(() => process.exit(0))
+  .then((res) =>{ 
+    if (!res.length) console.log("No recent sales")
+    process.exit(0)
+  })
   .catch(error => {
     console.error(error);
     process.exit(1);
