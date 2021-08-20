@@ -23,11 +23,8 @@ const  discordSetup = async (): Promise<TextChannel> => {
 const buildMessage = (sale: any) => (
   new Discord.MessageEmbed()
 	.setColor('#0099ff')
-	.setTitle(sale.asset.name)
+	.setTitle(sale.asset.name,'Bridged Successfully')
 	.setURL(sale.asset.permalink)
-	.addFields(
-		{ name: 'Token Bridged'},
-	)
   .setImage(sale.asset.image_url)
 	.setTimestamp(Date.parse(`${sale?.created_date}Z`))
 )
