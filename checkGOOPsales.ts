@@ -2,6 +2,7 @@ import 'dotenv/config';
 import Discord, { TextChannel } from 'discord.js';
 import fetch from 'node-fetch';
 import { ethers } from "ethers";
+import {svg2png} from 'svg-png-converter';
 
 const OPENSEA_SHARED_STOREFRONT_ADDRESS = '0x495f947276749Ce646f68AC8c248420045cb7b5e';
 
@@ -20,6 +21,13 @@ const  discordSetup = async (): Promise<TextChannel> => {
   })
 }
 
+let outputBuffer = await svg2png({ 
+  input: readFileSync(sale.asset.image_thumbnail_url), 
+  encoding: 'buffer', 
+  format: 'png',
+})
+writeFileSync("tmp25.png", outputBuffer)
+
 const buildMessage = (sale: any) => (
   new Discord.MessageEmbed()
 	.setColor('#a3083e')
@@ -30,7 +38,7 @@ const buildMessage = (sale: any) => (
 		{ name: 'Seller', value: sale?.seller?.address,  },
     { name: 'Buyer', value: sale?.winner_account?.address, },
 	)
-  .setImage(sale.asset.image_thumbnail_url)
+  .setImage("tmp25.png")
 	.setTimestamp(Date.parse(`${sale?.created_date}Z`))
 )
 
