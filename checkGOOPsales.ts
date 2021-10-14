@@ -30,7 +30,7 @@ const buildMessage = (sale: any) => (
 		{ name: 'Seller', value: sale?.seller?.address,  },
     { name: 'Buyer', value: sale?.winner_account?.address, },
 	)
-  .setImage(sale.asset.image_url)
+  .setImage(sale.asset.image_thumbnail_url)
 	.setTimestamp(Date.parse(`${sale?.created_date}Z`))
 )
 
